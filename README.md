@@ -20,100 +20,65 @@ This is the simplest way to run Polyseer on your computer. No authentication, no
 
 ### Setup (5 minutes)
 
-1. **Clone the repo:**
+**1. Clone the repo:**
 ```bash
 git clone https://github.com/yorkeccak/polyseer.git
 cd polyseer
 ```
 
-2. **Install dependencies:**
+**2. Install dependencies:**
 ```bash
 pnpm install
 ```
 
-3. **Create `.env.local` file** in the project root with:
+**3. Create `.env.local` file** in the project root:
 ```env
 NEXT_PUBLIC_APP_MODE=development
 OPENAI_API_KEY=sk-proj-...              # Get from platform.openai.com
 VALYU_API_KEY=valyu_...                  # Get from platform.valyu.ai
 ```
 
-4. **Start the app:**
+**4. Start the app:**
 ```bash
 pnpm dev
 ```
 
-5. **Open [http://localhost:3000](http://localhost:3000)** and paste any Polymarket or Kalshi URL!
+**5. Open [http://localhost:3000](http://localhost:3000)** and paste any Polymarket or Kalshi URL!
 
-That's it. No database, no OAuth, no complicated setup.
+That's it. No authentication, no database required.
+
+### Optional: Save Analysis History (Development Mode)
+
+If you want to save your analyses to view later, set up Supabase:
+
+1. Create a free project at [supabase.com](https://supabase.com)
+2. Go to **SQL Editor** → **New Query**
+3. Copy/paste everything from `supabase/setup.sql` and click **Run**
+4. Go to **Settings** → **API** and add to your `.env.local`:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJ...
+```
+
+Restart `pnpm dev` and your analyses will be saved.
 
 ---
 
 ## Production Setup (Advanced)
 
-**⚠️ Only do this if you need user authentication and want to deploy this publicly.**
+Only needed if you want user authentication and public deployment.
 
-The production version uses Valyu OAuth for authentication and tracks user sessions in a database. It's more complicated.
-
-### What You Need (in addition to above)
-- **Supabase Account** - [supabase.com](https://supabase.com) (free tier is fine)
-- **Valyu OAuth App** - Email [harvey@valyu.ai](mailto:harvey@valyu.ai) to request OAuth credentials
-
-### Database Setup
-
-1. **Create a Supabase project** at [supabase.com](https://supabase.com)
-
-2. **Run the setup SQL:**
-   - Go to your Supabase dashboard
-   - Click **"SQL Editor"** in the left sidebar
-   - Click **"New Query"**
-   - Copy/paste **everything** from `supabase/setup.sql`
-   - Click **"Run"** (or press Cmd+Enter)
-   - You should see "Success. No rows returned"
-
-3. **Get your Supabase credentials:**
-   - In Supabase dashboard, go to **Settings** → **API**
-   - Copy the **URL** and **anon/public key**
-
-### Environment Variables
-
-Update your `.env.local` file:
-
+Add these to your `.env.local`:
 ```env
-# ===========================================
-# App Configuration
-# ===========================================
 NEXT_PUBLIC_APP_MODE=production
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-# ===========================================
-# Required API Keys
-# ===========================================
-OPENAI_API_KEY=sk-proj-...              # Get from platform.openai.com
-VALYU_API_KEY=valyu_...                  # Get from platform.valyu.ai
-
-# ===========================================
-# Supabase (Database)
-# ===========================================
-NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJ...
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJ...  # Get from Settings → API → service_role key
-
-# ===========================================
-# Valyu OAuth (Request from harvey@valyu.ai)
-# ===========================================
-VALYU_CLIENT_ID=your-client-id
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJ...     # From Supabase Settings → API
+VALYU_CLIENT_ID=your-client-id               # Email harvey@valyu.ai for OAuth credentials
 VALYU_CLIENT_SECRET=your-client-secret
 VALYU_REDIRECT_URI=http://localhost:3000/api/auth/valyu/callback
 ```
 
-### Start in Production Mode
-
-```bash
-pnpm dev
-```
-
-Now the app will require users to sign in with Valyu before using it.
+Then `pnpm dev` - users will need to sign in with Valyu.
 
 ---
 
