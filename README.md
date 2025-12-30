@@ -17,9 +17,8 @@ This is the simplest way to run Polyseer on your computer. No authentication, no
 - **pnpm** - Install with: `npm install -g pnpm`
 - **OpenAI API Key** - Get from [platform.openai.com](https://platform.openai.com)
 - **Valyu API Key** - Get from [platform.valyu.ai](https://platform.valyu.ai)
-- **Supabase Account** - Free at [supabase.com](https://supabase.com) (for database)
 
-### Setup (10 minutes)
+### Setup (5 minutes)
 
 **1. Clone the repo:**
 ```bash
@@ -32,35 +31,37 @@ cd polyseer
 pnpm install
 ```
 
-**3. Set up Supabase database:**
-- Create a project at [supabase.com](https://supabase.com)
-- Go to **SQL Editor** → **New Query**
-- Copy/paste everything from `supabase/setup.sql`
-- Click **Run** (you should see "Success. No rows returned")
-- Go to **Settings** → **API** and copy your URL and anon key
-
-**4. Create `.env.local` file** in the project root:
+**3. Create `.env.local` file** in the project root:
 ```env
-# App mode
 NEXT_PUBLIC_APP_MODE=development
-
-# API Keys
-OPENAI_API_KEY=sk-proj-...                        # Get from platform.openai.com
-VALYU_API_KEY=valyu_...                           # Get from platform.valyu.ai
-
-# Supabase (get from Settings → API in your Supabase dashboard)
-NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJ...
+OPENAI_API_KEY=sk-proj-...              # Get from platform.openai.com
+VALYU_API_KEY=valyu_...                  # Get from platform.valyu.ai
 ```
 
-**5. Start the app:**
+**4. Start the app:**
 ```bash
 pnpm dev
 ```
 
-**6. Open [http://localhost:3000](http://localhost:3000)** and paste any Polymarket or Kalshi URL!
+**5. Open [http://localhost:3000](http://localhost:3000)** and paste any Polymarket or Kalshi URL!
 
-That's it. No authentication required in development mode.
+That's it. No authentication, no database required.
+
+### Optional: Save Analysis History (Development Mode)
+
+If you want to save your analyses to view later, set up Supabase:
+
+1. Create a free project at [supabase.com](https://supabase.com)
+2. Go to **SQL Editor** → **New Query**
+3. Copy/paste everything from `supabase/setup.sql` and click **Run**
+4. Go to **Settings** → **API** and add to your `.env.local`:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJ...
+```
+
+Restart `pnpm dev` and your analyses will be saved.
 
 ---
 
