@@ -19,9 +19,9 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 
   const { signInWithValyu } = useAuthStore()
 
-  // Hide auth modal in development mode (default to development)
-  const isDevelopment = process.env.NEXT_PUBLIC_APP_MODE !== 'production'
-  if (isDevelopment) {
+  // Hide auth modal in self-hosted mode (default to self-hosted)
+  const isSelfHosted = process.env.NEXT_PUBLIC_APP_MODE !== 'valyu'
+  if (isSelfHosted) {
     return null
   }
 

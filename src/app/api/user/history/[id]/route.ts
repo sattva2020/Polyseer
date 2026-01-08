@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
+import { getUser, deleteAnalysisSession, isSelfHostedMode, DEV_USER_ID } from '@/lib/db'
 import { getAnalysisById } from '@/lib/analysis-session'
 
 export async function GET(
@@ -8,18 +8,15 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getUser()
 
-    if (!user) {
-      const isDevelopment = process.env.NEXT_PUBLIC_APP_MODE === 'development'
-      if (isDevelopment) {
-        return NextResponse.json({ error: 'Database not configured' }, { status: 404 })
-      }
+    const userId = user?.id || (isSelfHostedMode() ? DEV_USER_ID : null)
+
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const analysis = await getAnalysisById(id, user.id)
+    const analysis = await getAnalysisById(id, userId)
 
     if (!analysis) {
       return NextResponse.json({ error: 'Analysis not found' }, { status: 404 })
@@ -28,9 +25,8 @@ export async function GET(
     return NextResponse.json(analysis)
   } catch (error) {
     console.error('Failed to fetch analysis:', error)
-    const isDevelopment = process.env.NEXT_PUBLIC_APP_MODE === 'development'
-    if (isDevelopment) {
-      return NextResponse.json({ error: 'Database not configured' }, { status: 404 })
+    if (isSelfHostedMode()) {
+      return NextResponse.json({ error: 'Analysis not found' }, { status: 404 })
     }
     return NextResponse.json(
       { error: 'Failed to fetch analysis' },
@@ -45,22 +41,15 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getUser()
 
-    if (!user) {
-      const isDevelopment = process.env.NEXT_PUBLIC_APP_MODE === 'development'
-      if (isDevelopment) {
-        return NextResponse.json({ error: 'Database not configured' }, { status: 404 })
-      }
+    const userId = user?.id || (isSelfHostedMode() ? DEV_USER_ID : null)
+
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { error } = await supabase
-      .from('analysis_sessions')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', user.id)
+    const { error } = await deleteAnalysisSession(id, userId)
 
     if (error) {
       console.error('Failed to delete analysis:', error)
@@ -73,9 +62,8 @@ export async function DELETE(
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to delete analysis:', error)
-    const isDevelopment = process.env.NEXT_PUBLIC_APP_MODE === 'development'
-    if (isDevelopment) {
-      return NextResponse.json({ error: 'Database not configured' }, { status: 404 })
+    if (isSelfHostedMode()) {
+      return NextResponse.json({ error: 'Failed to delete analysis' }, { status: 500 })
     }
     return NextResponse.json(
       { error: 'Failed to delete analysis' },

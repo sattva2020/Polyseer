@@ -82,7 +82,7 @@ export default function Header() {
 
   // User is a Valyu user if they have valyu_sub
   const isValyuUser = !!user?.valyu_sub;
-  const isDevelopment = process.env.NEXT_PUBLIC_APP_MODE !== 'production';
+  const isSelfHosted = process.env.NEXT_PUBLIC_APP_MODE !== 'valyu';
 
   const tier = isValyuUser ? 'Valyu' : 'Sign in';
 
@@ -430,7 +430,7 @@ export default function Header() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            ) : mounted && !isDevelopment ? (
+            ) : mounted && !isSelfHosted ? (
               <Button
                 variant='ghost'
                 size='sm'

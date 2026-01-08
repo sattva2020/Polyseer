@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runPolymarketForecastPipeline, runUnifiedForecastPipeline } from '@/lib/agents/orchestrator';
-import { createClient } from '@/utils/supabase/server';
+import { getUser, isSelfHostedMode, DEV_USER_ID } from '@/lib/db';
 import { createAnalysisSession, completeAnalysisSession, failAnalysisSession } from '@/lib/analysis-session';
 import { parseMarketUrl, isValidMarketUrl } from '@/lib/tools/market-url-parser';
 import { setValyuContext, clearValyuContext } from '@/lib/tools/valyu_search';
@@ -11,22 +11,21 @@ export async function POST(req: NextRequest) {
   let sessionId: string | null = null;
 
   try {
-    const isDevelopment = process.env.NEXT_PUBLIC_APP_MODE === 'development';
+    const isSelfHosted = isSelfHostedMode();
 
-    // Get user (optional in development mode)
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    // Get user (optional in self-hosted mode)
+    const { data: { user } } = await getUser();
 
-    // In production, authentication is required
-    if (!isDevelopment && !user) {
+    // In valyu mode, authentication is required
+    if (!isSelfHosted && !user) {
       return NextResponse.json(
         { error: 'Please sign in with Valyu to analyze markets' },
         { status: 401 }
       );
     }
 
-    console.log('[Forecast API] Mode:', isDevelopment ? 'development' : 'production');
-    console.log('[Forecast API] Authenticated user ID:', user?.id || 'anonymous (dev mode)');
+    console.log('[Forecast API] Mode:', isSelfHosted ? 'self-hosted' : 'valyu');
+    console.log('[Forecast API] Authenticated user ID:', user?.id || 'anonymous (self-hosted mode)');
     console.log('[Forecast API] User email:', user?.email || 'none');
 
     const body = await req.json();
@@ -40,18 +39,18 @@ export async function POST(req: NextRequest) {
       valyuAccessToken, // Valyu OAuth token for API calls - optional in dev mode
     } = body;
 
-    // In development mode, Valyu token is optional (will use VALYU_API_KEY)
-    // In production mode, Valyu token is required
-    if (!isDevelopment && !valyuAccessToken) {
+    // In self-hosted mode, Valyu token is optional (will use VALYU_API_KEY)
+    // In valyu mode, Valyu token is required
+    if (!isSelfHosted && !valyuAccessToken) {
       return NextResponse.json(
         { error: 'Valyu connection required. Please sign in with Valyu to analyze markets.' },
         { status: 401 }
       );
     }
 
-    // Set Valyu context for tools to use (optional in dev mode)
+    // Set Valyu context for tools to use (optional in self-hosted mode)
     setValyuContext(valyuAccessToken);
-    console.log('[Forecast API] Valyu access token:', valyuAccessToken ? 'present (OAuth)' : 'none (will use API key in dev mode)');
+    console.log('[Forecast API] Valyu access token:', valyuAccessToken ? 'present (OAuth)' : 'none (will use API key in self-hosted mode)');
 
     // Determine which parameter was provided and validate
     let finalMarketUrl: string;
@@ -95,20 +94,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Create analysis session (only if user is authenticated)
-    // Pass the full URL so platform detection works correctly
-    if (user) {
-      const session = await createAnalysisSession(user.id, finalMarketUrl);
+    // Create analysis session
+    // In self-hosted mode, use DEV_USER_ID if no user is authenticated
+    const userId = user?.id || (isSelfHosted ? DEV_USER_ID : null);
+    if (userId) {
+      const session = await createAnalysisSession(userId, finalMarketUrl);
       sessionId = session.id;
     }
-    // Valyu API usage is handled via OAuth proxy in production (charged to user's org credits)
-    // In development mode, uses VALYU_API_KEY directly
+    // Valyu API usage is handled via OAuth proxy in valyu mode (charged to user's org credits)
+    // In self-hosted mode, uses VALYU_API_KEY directly
 
     // Create a ReadableStream for Server-Sent Events
     const stream = new ReadableStream({
       async start(controller) {
         const encoder = new TextEncoder();
-        
+
         // Helper function to send SSE event
         const sendEvent = (data: any, event?: string) => {
           const eventData = event ? `event: ${event}\n` : '';
@@ -186,14 +186,14 @@ export async function POST(req: NextRequest) {
 
         } catch (error) {
           console.error('Error in forecast API:', error);
-          
+
           const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-          
+
           // Mark session as failed
           if (sessionId) {
             await failAnalysisSession(sessionId, errorMessage);
           }
-          
+
           sendEvent({
             type: 'error',
             error: errorMessage,
@@ -221,16 +221,16 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('Error setting up forecast stream:', error);
-    
+
     // Mark session as failed if it was created
     if (sessionId) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       await failAnalysisSession(sessionId, errorMessage);
     }
-    
+
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred'
       },
       { status: 500 }

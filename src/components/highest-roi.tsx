@@ -11,7 +11,7 @@ interface MarketCardProps {
   onAnalyze: (url: string) => void;
 }
 
-// Fallback markets for development mode (only 4 for mobile)
+// Fallback markets for self-hosted mode (only 4 for mobile)
 const fallbackMarkets: FeaturedMarket[] = [
   {
     id: 1,
@@ -177,15 +177,15 @@ export default function HighestROI({ onAnalyze }: HighestROIProps) {
       try {
         setIsLoading(true);
         
-        // In development mode, always use fallback markets
-        if (process.env.NEXT_PUBLIC_APP_MODE === 'development') {
-          console.log('[Carousel] Development mode - using fallback markets');
+        // In self-hosted mode, always use fallback markets
+        if (process.env.NEXT_PUBLIC_APP_MODE === 'self-hosted') {
+          console.log('[Carousel] Self-hosted mode - using fallback markets');
           setMarkets(fallbackMarkets);
           setIsLoading(false);
           return;
         }
 
-        // In production mode, fetch real markets from API
+        // In valyu mode, fetch real markets from API
         const response = await fetch('/api/featured-markets');
         const data = await response.json();
 

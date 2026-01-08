@@ -1,92 +1,41 @@
 # Polyseer - See the Future.
 
-## AI Deepresearch for prediction markets: [polyseer.xyz](https://polyseer.xyz)**
+> *Everyone wishes they could go back and buy Bitcoin at $1. Polyseer brings the future to you, so you never have to wonder "what if?" again.*
 
-Seriously, unless you're a developer who wants to modify the code, just use the hosted version. It's free, already set up, and works immediately. No setup required.
+**NOT FINANCIAL ADVICE** | Polyseer provides analysis for entertainment and research purposes only. Always DYOR.
 
----
+## Quick Start (Self-Hosted)
 
-**Still here?** Okay, you must really want to run this locally. Here's how:
+The easiest way to run Polyseer is in self-hosted mode with just 3 environment variables:
 
-## Quick Start (Development Mode)
-
-This is the simplest way to run Polyseer on your computer. No authentication, no database setup required.
-
-### What You Need
-- **Node.js 18+** - [Download here](https://nodejs.org/)
-- **pnpm** - Install with: `npm install -g pnpm`
-- **OpenAI API Key** - Get from [platform.openai.com](https://platform.openai.com)
-- **Valyu API Key** - Get from [platform.valyu.ai](https://platform.valyu.ai)
-
-### Setup (5 minutes)
-
-**1. Clone the repo:**
 ```bash
 git clone https://github.com/yorkeccak/polyseer.git
 cd polyseer
+npm install
+
+# Create .env.local with:
+# NEXT_PUBLIC_APP_MODE=self-hosted
+# VALYU_API_KEY=valyu_xxx        # Get from platform.valyu.ai
+# OPENAI_API_KEY=sk-xxx          # Get from platform.openai.com
+
+npm run dev
 ```
 
-**2. Install dependencies:**
-```bash
-pnpm install
-```
+Open [localhost:3000](http://localhost:3000), paste any **Polymarket or Kalshi** URL, and get your analysis.
 
-**3. Create `.env.local` file** in the project root:
-```env
-NEXT_PUBLIC_APP_MODE=development
-OPENAI_API_KEY=sk-proj-...              # Get from platform.openai.com
-VALYU_API_KEY=valyu_...                  # Get from platform.valyu.ai
-```
-
-**4. Start the app:**
-```bash
-pnpm dev
-```
-
-**5. Open [http://localhost:3000](http://localhost:3000)** and paste any Polymarket or Kalshi URL!
-
-That's it. No authentication, no database required.
-
-### Optional: Save Analysis History (Development Mode)
-
-If you want to save your analyses to view later, set up Supabase:
-
-1. Create a free project at [supabase.com](https://supabase.com)
-2. Go to **SQL Editor** → **New Query**
-3. Copy/paste everything from `supabase/setup.sql` and click **Run**
-4. Go to **Settings** → **API** and add to your `.env.local`:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJ...
-```
-
-Restart `pnpm dev` and your analyses will be saved.
-
----
-
-## Production Setup (Advanced)
-
-Only needed if you want user authentication and public deployment.
-
-Add these to your `.env.local`:
-```env
-NEXT_PUBLIC_APP_MODE=production
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJ...     # From Supabase Settings → API
-VALYU_CLIENT_ID=your-client-id               # Email harvey@valyu.ai for OAuth credentials
-VALYU_CLIENT_SECRET=your-client-secret
-VALYU_REDIRECT_URI=http://localhost:3000/api/auth/valyu/callback
-```
-
-Then `pnpm dev` - users will need to sign in with Valyu.
-
----
+Self-hosted mode features:
+- No authentication required
+- Local SQLite database (automatically created)
+- Unlimited queries using your API keys
+- Perfect for personal use and development
 
 ## What is Polyseer?
 
-Prediction markets tell you **what might happen**. Polyseer tells you **why**.
+Prediction markets tell you what might happen. Polyseer tells you why.
 
 Drop in any **Polymarket or Kalshi** URL and get a structured analysis that breaks down the actual factors driving an outcome. Instead of gut feelings or surface-level takes, you get systematic research across academic papers, news, market data, and expert analysis.
+
+The system uses multiple AI agents to research both sides of a question, then aggregates the evidence using Bayesian probability math. Think of it as having a research team that can read thousands of sources in minutes and give you the key insights.
 
 **Core features:**
 - Systematic research across academic, web, and market data sources
@@ -99,125 +48,401 @@ Built for developers, researchers, and anyone who wants rigorous analysis instea
 
 ---
 
-## How It Works
+## Architecture Overview
 
-Polyseer uses a **multi-agent AI system** to research markets:
+Polyseer is built on a **multi-agent AI architecture** that orchestrates specialized agents to conduct deep analysis. Here's how it works:
 
-1. **Planner Agent** - Breaks down the question into research pathways
-2. **Researcher Agents** - Gather evidence from academic papers, news, and market data
-3. **Critic Agent** - Identifies gaps and quality issues in the research
-4. **Analyst Agent** - Combines evidence using Bayesian probability math
-5. **Reporter Agent** - Generates the final human-readable report
+```mermaid
+graph TD
+    A[User Input: Market URL] --> B[Platform Detector]
+    B --> C{Polymarket or Kalshi?}
+    C -->|Polymarket| D[Polymarket API Client]
+    C -->|Kalshi| E[Kalshi API Client]
+    D --> F[Unified Market Data]
+    E --> F
+    B --> C[Orchestrator]
+    C --> D[Planner Agent]
+    D --> E[Research Agents]
+    E --> F[Valyu Search Network]
+    F --> G[Evidence Collection]
+    G --> H[Critic Agent]
+    H --> I[Analyst Agent]
+    I --> J[Reporter Agent]
+    J --> K[Final Verdict]
+
+    style A fill:#e1f5fe
+    style K fill:#c8e6c9
+    style F fill:#fff3e0
+    style C fill:#f3e5f5
+```
+
+### Agent System Deep Dive
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Orch as Orchestrator
+    participant Plan as Planner
+    participant Res as Researcher
+    participant Valyu as Valyu Network
+    participant Critic
+    participant Analyst
+    participant Reporter
+
+    User->>Orch: Polymarket URL
+    Orch->>Plan: Generate research strategy
+    Plan->>Orch: Subclaims + search seeds
+
+    par Research Cycle 1
+        Orch->>Res: Research PRO evidence
+        Res->>Valyu: Deep + Web searches
+        Valyu-->>Res: Academic papers, news, data
+        and
+        Orch->>Res: Research CON evidence
+        Res->>Valyu: Targeted counter-searches
+        Valyu-->>Res: Contradicting evidence
+    end
+
+    Orch->>Critic: Analyze evidence gaps
+    Critic->>Orch: Follow-up search recommendations
+
+    par Research Cycle 2 (if gaps found)
+        Orch->>Res: Targeted follow-up searches
+        Res->>Valyu: Fill identified gaps
+        Valyu-->>Res: Missing evidence
+    end
+
+    Orch->>Analyst: Bayesian probability aggregation
+    Analyst->>Orch: pNeutral, pAware, evidence weights
+
+    Orch->>Reporter: Generate final report
+    Reporter->>User: Analyst-grade verdict
+```
+
+## Deep Research System
+
+### Valyu Integration
+
+Polyseer uses the Valyu API for its research capabilities, providing access to:
+
+- **Academic Papers**: Real-time research publications
+- **Web Intelligence**: Fresh news and analysis
+- **Market Data**: Financial and trading information
+- **Proprietary Datasets**: Exclusive Valyu intelligence
+
+```mermaid
+graph LR
+    A[Research Query] --> B[Valyu Deep Search]
+    B --> C[Academic Sources]
+    B --> D[Web Sources]
+    B --> E[Market Data]
+    B --> F[Proprietary Intel]
+
+    C --> G[Evidence Classification]
+    D --> G
+    E --> G
+    F --> G
+
+    G --> H[Type A: Primary Sources]
+    G --> I[Type B: High-Quality Secondary]
+    G --> J[Type C: Standard Secondary]
+    G --> K[Type D: Weak/Speculative]
+
+    style B fill:#fff3e0
+    style H fill:#c8e6c9
+    style I fill:#dcedc8
+    style J fill:#f0f4c3
+    style K fill:#ffcdd2
+```
 
 ### Evidence Quality System
 
-Each piece of evidence is classified by quality:
+Each piece of evidence is rigorously classified:
 
-| Type | Description | Examples |
-|------|-------------|----------|
-| **A** | Primary Sources | Official documents, press releases, regulatory filings |
-| **B** | High-Quality Secondary | Reuters, Bloomberg, WSJ, expert analysis |
-| **C** | Standard Secondary | Reputable news with citations |
-| **D** | Weak/Speculative | Social media, unverified claims |
+| Type | Description | Cap | Examples |
+|------|-------------|-----|----------|
+| **A** | Primary Sources | 2.0 | Official documents, press releases, regulatory filings |
+| **B** | High-Quality Secondary | 1.6 | Reuters, Bloomberg, WSJ, expert analysis |
+| **C** | Standard Secondary | 0.8 | Reputable news with citations, industry publications |
+| **D** | Weak/Speculative | 0.3 | Social media, unverified claims, rumors |
 
-### Mathematical Foundation
+## Mathematical Foundation
 
-Polyseer uses **Bayesian probability aggregation** to combine evidence:
-- Each piece of evidence has a **log likelihood ratio** based on its quality
-- Evidence is adjusted for **correlation** (to avoid double-counting similar sources)
-- Final probability is calculated using **mathematical formulas**, not vibes
+### Bayesian Probability Aggregation
 
----
+Polyseer uses sophisticated mathematical models to combine evidence:
 
-## Tech Stack
+```mermaid
+graph TD
+    A[Prior Probability p0] --> B[Evidence Weights]
+    B --> C[Log Likelihood Ratios]
+    C --> D[Correlation Adjustments]
+    D --> E[Cluster Analysis]
+    E --> F[Final Probabilities]
 
-- **Next.js 16.1** - React framework with Turbopack (5-14× faster dev)
+    F --> G[pNeutral: Objective Assessment]
+    F --> H[pAware: Market-Informed]
+
+    style A fill:#e3f2fd
+    style F fill:#c8e6c9
+    style G fill:#dcedc8
+    style H fill:#f0f4c3
+```
+
+**Key Formulas:**
+- **Log Likelihood Ratio**: `LLR = log(P(evidence|YES) / P(evidence|NO))`
+- **Probability Update**: `p_new = p_old * exp(LLR)`
+- **Correlation Adjustment**: Accounts for evidence clustering and dependencies
+
+### Evidence Influence Calculation
+
+Each piece of evidence receives an influence score based on:
+- **Verifiability**: Can the claim be independently verified?
+- **Consistency**: Internal logical coherence
+- **Independence**: Number of independent corroborations
+- **Recency**: How fresh is the information?
+
+## Technology Stack
+
+### Frontend
+- **Next.js 15.5** - React framework with Turbopack
+- **Tailwind CSS 4** - Utility-first styling
+- **Framer Motion** - Smooth animations
+- **Radix UI** - Accessible components
 - **React 19** - Latest React features
-- **pnpm** - Fast package manager
+
+### Backend & APIs
+- **AI SDK** - LLM orchestration
 - **GPT-5** - Advanced reasoning model
-- **Valyu API** - Real-time search across academic papers, news, and market data
-- **Supabase** - Database and authentication (production mode only)
-- **Polymarket API** - Market data
-- **Kalshi API** - Market data
+- **Valyu API** - Search and research capabilities
+- **Polymarket API** - Market data fetching
+- **Kalshi API** - Market data fetching
+- **SQLite/Supabase** - Database (mode-dependent)
+
+### State Management
+- **Zustand** - Simple state management
+- **TanStack Query** - Server state synchronization
+
+### Infrastructure
+- **TypeScript** - Type safety throughout
+- **Zod** - Runtime type validation
+- **ESLint** - Code quality
 
 ---
 
-## Project Structure
+## Getting Started
 
-```
-polyseer/
-├── src/
-│   ├── app/                    # Next.js 16 app directory
-│   │   ├── api/                # API routes (forecast, featured-markets, etc.)
-│   │   ├── analysis/           # Analysis page
-│   │   └── page.tsx            # Homepage
-│   ├── components/             # React components
-│   ├── lib/                    # Core logic
-│   │   ├── agents/             # AI agents (planner, researcher, critic, etc.)
-│   │   └── tools/              # Search tools (Valyu integration)
-│   └── utils/                  # Utilities
-├── supabase/
-│   └── setup.sql               # One simple SQL file for database setup
-├── .env.local                  # Your environment variables
-└── README.md                   # This file
-```
+### Prerequisites
 
----
+- **Node.js 18+**
+- **npm/pnpm/yarn**
+- **OpenAI API key** - For GPT-5 access
+- **Valyu API key** - For search capabilities (get at [platform.valyu.ai](https://platform.valyu.ai))
 
-## Troubleshooting
+### 1. Clone the Repository
 
-### "Module not found" errors
 ```bash
-rm -rf .next node_modules
-pnpm install
-pnpm dev
+git clone https://github.com/your-org/polyseer.git
+cd polyseer
 ```
 
-### Database connection errors
-- Make sure you ran `supabase/setup.sql` in your Supabase SQL editor
-- Check your `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are correct
+### 2. Install Dependencies
 
-### Valyu API errors
-- Make sure you have `VALYU_API_KEY` in your `.env.local`
-- Check you have credits at [platform.valyu.ai](https://platform.valyu.ai)
+```bash
+npm install
+# or
+pnpm install
+```
 
-### Still stuck?
-Open an issue on GitHub or email [harvey@valyu.ai](mailto:harvey@valyu.ai)
+### 3. Environment Setup
+
+Create `.env.local` with your configuration:
+
+#### Self-Hosted Mode (Recommended)
+
+```env
+# ===========================================
+# Self-Hosted Mode Configuration
+# ===========================================
+NEXT_PUBLIC_APP_MODE=self-hosted
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# ===========================================
+# Required API Keys
+# ===========================================
+# Get your Valyu API key at: https://platform.valyu.ai
+VALYU_API_KEY=valyu_your_api_key_here
+
+# Get your OpenAI API key at: https://platform.openai.com
+OPENAI_API_KEY=sk-your_openai_api_key_here
+```
+
+That's it! Self-hosted mode uses a local SQLite database that's automatically created.
+
+#### Valyu Mode (Advanced)
+
+> **Note:** Valyu OAuth apps will be in general availability soon. Currently client id/secret are not publicly available. Contact contact@valyu.ai if you need access.
+
+```env
+# ===========================================
+# Valyu Mode Configuration
+# ===========================================
+NEXT_PUBLIC_APP_MODE=valyu
+NEXT_PUBLIC_APP_URL=https://yourdomain.com
+
+# ===========================================
+# Valyu OAuth Configuration
+# ===========================================
+NEXT_PUBLIC_VALYU_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_VALYU_CLIENT_ID=your-oauth-client-id
+VALYU_CLIENT_SECRET=your-oauth-client-secret
+VALYU_APP_URL=https://platform.valyu.ai
+
+# ===========================================
+# App's Own Supabase (Required for Valyu Mode)
+# ===========================================
+NEXT_PUBLIC_SUPABASE_URL=https://your-app.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# ===========================================
+# Required API Keys
+# ===========================================
+VALYU_API_KEY=valyu_your_api_key_here
+OPENAI_API_KEY=sk-your_openai_api_key_here
+```
+
+### 4. Start the Development Server
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) and start analyzing.
 
 ---
 
-## Legal Disclaimer
+## Agent System Details
 
-**NOT FINANCIAL ADVICE**: Polyseer provides analysis for entertainment and research purposes only. All predictions are probabilistic and should not be used as the sole basis for financial decisions. Always do your own research.
+### Planner Agent
+**Purpose**: Break down complex questions into research pathways
+**Input**: Market question
+**Output**: Subclaims, search seeds, key variables, decision criteria
+
+```typescript
+interface Plan {
+  subclaims: string[];      // Causal pathways to outcome
+  keyVariables: string[];   // Leading indicators to monitor
+  searchSeeds: string[];    // Targeted search queries
+  decisionCriteria: string[]; // Evidence evaluation criteria
+}
+```
+
+### Researcher Agent
+**Purpose**: Gather evidence from multiple sources
+**Tools**: Valyu Deep Search, Valyu Web Search
+**Process**:
+1. Initial bilateral research (PRO/CON)
+2. Evidence classification (A/B/C/D)
+3. Follow-up targeted searches
+
+### Critic Agent
+**Purpose**: Identify gaps and provide quality feedback
+**Analysis**:
+- Missing evidence areas
+- Duplication detection
+- Data quality concerns
+- Correlation adjustments
+- Follow-up search recommendations
+
+### Analyst Agent
+**Purpose**: Mathematical probability aggregation
+**Methods**:
+- Bayesian updating
+- Evidence clustering
+- Correlation adjustments
+- Log-likelihood calculations
+
+### Reporter Agent
+**Purpose**: Generate human-readable analysis
+**Output**: Markdown report with:
+- Executive summary
+- Evidence synthesis
+- Risk factors
+- Confidence assessment
+
+---
+
+## Security & Privacy
+
+### Data Protection
+- End-to-end encryption for sensitive data
+- Secure session management
+- Input sanitization for all user data
+- No personal data stored in search queries
+
+### API Security
+- Request validation using Zod schemas
+- Audit logging for all API calls
+
+---
+
+## Contributing
+
+We welcome contributions! Here's how to get started:
+
+### Development Workflow
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes
+4. Add tests: `npm run test`
+5. Submit a pull request
+
+### Code Style
+- **TypeScript**: Strict mode enabled
+- **ESLint**: Follow the configuration
+- **Prettier**: Auto-formatting on save
+- **Conventional Commits**: Use semantic commit messages
+
+---
+
+## Legal & Disclaimers
+
+### Important Notice
+**NOT FINANCIAL ADVICE**: Polyseer provides analysis for entertainment and research purposes only. All predictions are probabilistic and should not be used as the sole basis for financial decisions.
+
+### Terms of Service
+- Privacy Policy: We respect your privacy
+- Terms of Use: Fair use and guidelines
+- Liability: Limited liability for predictions
+- Jurisdiction: Governed by applicable laws
 
 ---
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 ---
 
 ## Acknowledgments
 
-- **Valyu Network** - Real-time search API and authentication
-- **OpenAI** - GPT-5 reasoning capabilities
-- **Polymarket** - Prediction market data
-- **Kalshi** - Prediction market data
-- **Supabase** - Database infrastructure
+### Powered By
+- **Valyu Network**: Real-time search API
+- **OpenAI GPT-5**: Advanced reasoning capabilities
+- **Polymarket**: Prediction market data
+- **Kalshi**: Prediction market data
 
 ---
 
-## One More Time: Just Use the Hosted Version
+**Ready to see the future? Clone the repo and start analyzing markets locally.**
 
-Seriously, go to **[polyseer.xyz](https://polyseer.xyz)** and save yourself the headache.
-
-Unless you want to hack on the code, there's no reason to self-host this. We already did the hard work for you.
+*Remember: The future belongs to those who can see it coming. Don't miss out again.*
 
 ---
 
 <div align="center">
-  <strong>See the Future. Don't Miss Out.</strong>
+  <img src="public/polyseer.svg" alt="Polyseer" width="200"/>
 
-  [polyseer.xyz](https://polyseer.xyz)
+  **See the Future. Don't Miss Out.**
 </div>

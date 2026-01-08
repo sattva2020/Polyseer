@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { getFeaturedMarkets } from '@/lib/db';
 
 export interface FeaturedMarket {
   id: number;
@@ -12,7 +12,7 @@ export interface FeaturedMarket {
   current_odds: any;
   sort_order: number;
   is_active: boolean;
-  updated_at: string;
+  updated_at?: string;
 }
 
 export interface FeaturedMarketsResponse {
@@ -26,32 +26,10 @@ export async function GET() {
   try {
     console.log('[API] Fetching featured markets...');
 
-    const supabase = await createClient();
-
-    // Simple query - cron job does all the intelligence
-    const { data: markets, error } = await supabase
-      .from('featured_markets')
-      .select('*')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true })
-      .order('volume', { ascending: false })
-      .limit(4); // Reduced to 4 for better mobile experience
+    const { data: markets, error } = await getFeaturedMarkets();
 
     if (error) {
       console.error('[API] Database error:', error);
-
-      // In development mode without Supabase, return empty array gracefully
-      const isDevelopment = process.env.NEXT_PUBLIC_APP_MODE === 'development';
-      if (isDevelopment && error.message?.includes('not configured')) {
-        console.log('[API] Supabase not configured, returning empty markets (dev mode)');
-        return NextResponse.json({
-          success: true,
-          markets: [],
-          count: 0,
-          message: 'Database not configured (development mode)'
-        });
-      }
-
       return NextResponse.json(
         { success: false, error: 'Database query failed', markets: [], count: 0 },
         { status: 500 }
