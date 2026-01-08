@@ -10,8 +10,8 @@ export async function createClient() {
 
   // In self-hosted mode, Supabase is optional
   if (!supabaseUrl || !supabaseAnonKey) {
-    const isDevelopment = process.env.NEXT_PUBLIC_APP_MODE === 'self-hosted'
-    if (isDevelopment) {
+    const isSelfHosted = process.env.NEXT_PUBLIC_APP_MODE === 'self-hosted'
+    if (isSelfHosted) {
       console.log('[Supabase] Running without database (self-hosted mode)')
       // Return a mock client that returns null for auth
       return {
@@ -55,8 +55,8 @@ export function createServiceClient() {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!supabaseUrl || !serviceRoleKey) {
-    const isDevelopment = process.env.NEXT_PUBLIC_APP_MODE === 'self-hosted'
-    if (isDevelopment) {
+    const isSelfHosted = process.env.NEXT_PUBLIC_APP_MODE === 'self-hosted'
+    if (isSelfHosted) {
       console.log('[Supabase] Service client not available (no credentials)')
       // Return a mock client
       return {

@@ -86,10 +86,10 @@ async function callValyuApi(
   body: any,
   valyuAccessToken?: string
 ): Promise<ValyuSearchResponse> {
-  const isDevelopment = process.env.NEXT_PUBLIC_APP_MODE === 'self-hosted';
+  const isSelfHosted = process.env.NEXT_PUBLIC_APP_MODE === 'self-hosted';
 
   // Self-hosted mode: Use VALYU_API_KEY directly
-  if (isDevelopment && !valyuAccessToken) {
+  if (isSelfHosted && !valyuAccessToken) {
     const apiKey = process.env.VALYU_API_KEY;
     if (!apiKey) {
       console.error('[callValyuApi] Self-hosted mode requires VALYU_API_KEY');

@@ -233,18 +233,18 @@ function AnalysisContent() {
     }
 
     // Check if we're in self-hosted mode
-    const isDevelopment = process.env.NEXT_PUBLIC_APP_MODE === 'self-hosted';
+    const isSelfHosted = process.env.NEXT_PUBLIC_APP_MODE === 'self-hosted';
 
     // In valyu mode, user must be authenticated with Valyu
     // In self-hosted mode, authentication is optional
-    if (!isDevelopment && !user) {
+    if (!isSelfHosted && !user) {
       setError('VALYU_SIGNIN_REQUIRED');
       return;
     }
 
     // Get Valyu access token for API calls (optional in self-hosted mode)
     const valyuAccessToken = await getValidAccessToken();
-    if (!isDevelopment && !valyuAccessToken) {
+    if (!isSelfHosted && !valyuAccessToken) {
       setError('VALYU_SIGNIN_REQUIRED');
       return;
     }
