@@ -84,7 +84,7 @@ sequenceDiagram
     participant Orch as Orchestrator
     participant Plan as Planner
     participant Res as Researcher
-    participant Valyu as Valyu Network
+    participant Valyu as valyuAI
     participant Critic
     participant Analyst
     participant Reporter
@@ -428,7 +428,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ## Acknowledgments
 
 ### Powered By
-- **Valyu Network**: Real-time search API
+- **valyuAI**: Real-time search API
 - **OpenAI GPT-5**: Advanced reasoning capabilities
 - **Polymarket**: Prediction market data
 - **Kalshi**: Prediction market data
