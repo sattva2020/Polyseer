@@ -4,7 +4,7 @@
  * Perfect for development and small-scale deployments
  */
 
-import { openai } from '@ai-sdk/openai';
+import { google } from '@ai-sdk/google';
 import { embed, embedMany, cosineSimilarity } from 'ai';
 import { ValyuSearchResult } from '../tools/valyu_search';
 
@@ -80,7 +80,7 @@ export class SimpleMemoryService {
   private async generateEmbedding(text: string): Promise<number[]> {
     try {
       const embeddingConfig: any = {
-        model: openai.textEmbeddingModel('text-embedding-3-small'),
+        model: google.textEmbeddingModel('text-embedding-004'),
         value: text,
         maxRetries: this.embeddingOptions.maxRetries,
       };
@@ -92,7 +92,7 @@ export class SimpleMemoryService {
 
       if (this.embeddingOptions.dimensions) {
         embeddingConfig.providerOptions = {
-          openai: {
+          google: {
             dimensions: this.embeddingOptions.dimensions,
           },
         };
@@ -117,7 +117,7 @@ export class SimpleMemoryService {
   private async generateEmbeddings(texts: string[]): Promise<number[][]> {
     try {
       const embeddingConfig: any = {
-        model: openai.textEmbeddingModel('text-embedding-3-small'),
+        model: google.textEmbeddingModel('text-embedding-004'),
         values: texts,
         maxRetries: this.embeddingOptions.maxRetries,
         maxParallelCalls: this.embeddingOptions.maxParallelCalls,
@@ -130,7 +130,7 @@ export class SimpleMemoryService {
 
       if (this.embeddingOptions.dimensions) {
         embeddingConfig.providerOptions = {
-          openai: {
+          google: {
             dimensions: this.embeddingOptions.dimensions,
           },
         };
@@ -534,7 +534,7 @@ export class SimpleMemoryService {
     // Test batch embedding
     const batchStart = Date.now();
     const { embeddings } = await embedMany({
-      model: openai.textEmbeddingModel('text-embedding-3-small'),
+      model: google.textEmbeddingModel('text-embedding-004'),
       values: testTexts,
       maxRetries: this.embeddingOptions.maxRetries,
       maxParallelCalls: this.embeddingOptions.maxParallelCalls,

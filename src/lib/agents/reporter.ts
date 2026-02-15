@@ -1,9 +1,9 @@
 import { generateText } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { google } from '@ai-sdk/google';
 import { InfluenceItem, ClusterMeta, Evidence } from '../forecasting/types';
 
 // Model helper
-const getModel = () => openai('gpt-4o-mini');
+const getModel = () => google('gemini-3-flash-preview');
 
 export async function reporterAgent(
   question: string,

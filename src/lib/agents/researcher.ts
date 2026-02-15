@@ -1,12 +1,12 @@
 import { generateText, Output } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { google } from '@ai-sdk/google';
 import { z } from 'zod';
 import { Evidence } from '../forecasting/types';
 import { valyuDeepSearchTool, valyuWebSearchTool } from '../tools/valyu_search';
 
-// Model helpers - using OpenAI directly (costs handled via Valyu OAuth proxy for search)
-const getModelSmall = () => openai('gpt-4o-mini');
-const getModel = () => openai('gpt-4o');
+// Model helpers - using Google Gemini
+const getModelSmall = () => google('gemini-3-flash-preview');
+const getModel = () => google('gemini-3-pro-preview');
 
 interface MarketData {
   market_facts: {

@@ -4,11 +4,11 @@ import { evidenceLogLR, TYPE_CAPS } from '../forecasting/evidence';
 import { clamp } from '../forecasting/math';
 import { generateObject } from 'ai';
 import { z } from 'zod';
-import { openai } from '@ai-sdk/openai';
+import { google } from '@ai-sdk/google';
 
 // Model helpers
-const getModel = () => openai('gpt-4o');
-const getModelSmall = () => openai('gpt-4o-mini');
+const getModel = () => google('gemini-3-pro-preview');
+const getModelSmall = () => google('gemini-3-flash-preview');
 
 export interface MarketSnapshot { 
   probability: number; 
@@ -106,7 +106,7 @@ const NicheSchema = z.object({
 
 async function analyzeNicheAuthority(evidence: Evidence[], question: string): Promise<Record<string, number>> {
   if (evidence.length === 0) return {};
-  const model = openai('gpt-5');
+  const model = google('gemini-3-pro-preview');
   try {
     const list = evidence.map(e => {
       const domain = e.urls && e.urls.length ? (() => { try { return new URL(e.urls[0]).hostname.replace(/^www\./,''); } catch { return 'unknown'; } })() : 'unknown';

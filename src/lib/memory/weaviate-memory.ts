@@ -1,5 +1,5 @@
 import weaviate from 'weaviate-client';
-import { openai } from '@ai-sdk/openai';
+import { google } from '@ai-sdk/google';
 import { embed } from 'ai';
 import { ValyuSearchResult } from '../tools/valyu_search';
 
@@ -123,7 +123,7 @@ export class WeaviateMemoryService {
   private async generateEmbedding(text: string): Promise<number[]> {
     try {
       const { embedding } = await embed({
-        model: openai.embedding('text-embedding-3-small'),
+        model: google.textEmbeddingModel('text-embedding-004'),
         value: text,
       });
       return embedding;
