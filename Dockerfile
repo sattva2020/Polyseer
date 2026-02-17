@@ -13,6 +13,8 @@ FROM base AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --no-frozen-lockfile
+# pnpm v10 ignores build scripts by default — rebuild native addons explicitly
+RUN pnpm rebuild better-sqlite3
 
 # ---- Build ----
 FROM base AS builder
@@ -22,7 +24,6 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Build without turbopack (more reliable in Docker)
 RUN npx next build
 
 # ---- Production ----
@@ -37,10 +38,12 @@ ENV HOSTNAME=0.0.0.0
 
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
-# Copy standalone build output
+# Copy standalone server + full node_modules (needed for better-sqlite3 native bindings)
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
+# Overlay full node_modules from deps (standalone trace misses native .node files)
+COPY --from=deps /app/node_modules ./node_modules
 
 # Create data directory for SQLite (self-hosted mode)
 RUN mkdir -p /app/.local-data && chown nextjs:nodejs /app/.local-data
