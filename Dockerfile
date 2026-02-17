@@ -42,6 +42,9 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
+# Create data directory for SQLite (self-hosted mode)
+RUN mkdir -p /app/.local-data && chown nextjs:nodejs /app/.local-data
+
 USER nextjs
 
 EXPOSE 3000
