@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { createClient } from '@/utils/supabase/client'
-import type { User } from '@supabase/supabase-js'
+import type { User, AuthChangeEvent, Session } from '@supabase/supabase-js'
 import {
   buildAuthorizationUrl,
   saveValyuTokens,
@@ -376,7 +376,7 @@ export const useAuthStore = create<AuthStore>()(
         // Listen for auth changes
         const {
           data: { subscription },
-        } = supabase.auth.onAuthStateChange(async (event, session) => {
+        } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
           console.log('[Auth State Change]', event, session?.user?.email)
 
           // Clear timeout since we got an auth update
