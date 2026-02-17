@@ -1,23 +1,15 @@
 import { createBrowserClient } from '@supabase/ssr'
 
+// Dummy credentials for self-hosted mode — creates a typed client that
+// fails silently on network calls (auth returns null user).
+// proxy.ts already skips Supabase middleware when credentials are missing,
+// and db.ts uses SQLite with DEV_USER_ID in self-hosted mode.
+const FALLBACK_URL = 'https://placeholder.supabase.co'
+const FALLBACK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MjAwMDAwMDAwMH0.placeholder'
+
 export function createClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    // Return a mock client for self-hosted mode (no Supabase)
-    return {
-      auth: {
-        getUser: async () => ({ data: { user: null }, error: null }),
-        getSession: async () => ({ data: { session: null }, error: null }),
-        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-        signOut: async () => ({ error: null }),
-      },
-      from: () => {
-        throw new Error('Supabase not configured in self-hosted mode')
-      },
-    } as any
-  }
-
-  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || FALLBACK_KEY
+  )
 }
