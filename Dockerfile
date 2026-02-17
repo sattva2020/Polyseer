@@ -12,9 +12,14 @@ WORKDIR /app
 FROM base AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
+# onlyBuiltDependencies in package.json allows better-sqlite3 to compile during install
 RUN pnpm install --no-frozen-lockfile
-# pnpm v10 ignores build scripts by default — rebuild native addons explicitly
-RUN pnpm rebuild better-sqlite3
+# Verify native addon was compiled
+RUN find /app/node_modules -name "better_sqlite3.node" -type f | head -5 && \
+    test -n "$(find /app/node_modules -name 'better_sqlite3.node' -type f)" || \
+    (echo "WARN: better-sqlite3.node not found after install, rebuilding..." && \
+     pnpm rebuild better-sqlite3 && \
+     find /app/node_modules -name "better_sqlite3.node" -type f | head -5)
 
 # ---- Build ----
 FROM base AS builder
@@ -38,7 +43,7 @@ ENV HOSTNAME=0.0.0.0
 
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
-# Copy standalone server + full node_modules (needed for better-sqlite3 native bindings)
+# Copy standalone server
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
